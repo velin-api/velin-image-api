@@ -1,0 +1,450 @@
+{
+  "name": "VELIN - Generate Image (async)",
+  "nodes": [
+    {
+      "id": "70b5c226-4ac6-4832-8bbf-cd5b90813a87",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "8c1d3fa8-76f5-4209-80c2-a016d46c2a37",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        200
+      ],
+      "webhookId": "efe12dde-3754-46fa-8a04-2dd9231c9e57",
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "velin-image",
+        "responseMode": "lastNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "1bc9f723-11cb-4d46-b8f6-d1a991581bb8",
+      "name": "Set Params",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "421367cf-c925-49af-b785-79bdf5ad483e",
+              "name": "prompt",
+              "type": "string",
+              "value": "={{ $json.body?.prompt || 'a quiet room, cream light' }}"
+            },
+            {
+              "id": "0ae415c8-926a-4462-adb4-c47103511acd",
+              "name": "model",
+              "type": "string",
+              "value": "={{ $json.body?.model || 'gpt-image-2.5-flare' }}"
+            },
+            {
+              "id": "9d880016-80c4-4f30-8a61-75870b2bc81a",
+              "name": "size",
+              "type": "string",
+              "value": "={{ $json.body?.size || '1:1' }}"
+            },
+            {
+              "id": "0f000d2a-7072-4012-9272-b4a28518cb8d",
+              "name": "resolution",
+              "type": "string",
+              "value": "={{ $json.body?.resolution || '1K' }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "5dc582eb-874a-4cb8-bd63-3a21ed2ff6e0",
+      "name": "Create Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        100
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "VELIN API Key"
+        }
+      },
+      "parameters": {
+        "method": "POST",
+        "url": "https://72agi.com/api/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formData",
+              "name": "prompt",
+              "value": "={{ $json.prompt }}"
+            },
+            {
+              "parameterType": "formData",
+              "name": "model",
+              "value": "={{ $json.model }}"
+            },
+            {
+              "parameterType": "formData",
+              "name": "size",
+              "value": "={{ $json.size }}"
+            },
+            {
+              "parameterType": "formData",
+              "name": "resolution",
+              "value": "={{ $json.resolution }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6c983eb4-34b6-4bca-8aa7-f3022c77ae2f",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        100
+      ],
+      "webhookId": "e3c02453-2d50-4e58-a02a-87a25f200884",
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "93c4836b-1c8f-468e-8a3a-9a4451615109",
+      "name": "Get Task",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        100
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "VELIN API Key"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "parameters": {
+        "url": "=https://72agi.com/api/task/{{ $('Create Task').item.json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      }
+    },
+    {
+      "id": "2ce34a50-2ff3-4e5f-ab36-1e62701498ae",
+      "name": "Succeeded?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "27411c77-b46a-46be-b96e-a78848de055f",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "succeeded",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "78bb661c-6761-4ddf-bf9c-a74ea239da5e",
+      "name": "Image URL",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b1d8d66a-f163-4a55-a147-1ff88f884b55",
+              "name": "taskId",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "14b81756-2def-4525-96af-83160bc3eb7d",
+              "name": "imageUrl",
+              "type": "string",
+              "value": "=https://72agi.com{{ $json.url }}"
+            },
+            {
+              "id": "90405435-214d-457b-a70f-350facdd92fa",
+              "name": "priceCny",
+              "type": "number",
+              "value": "={{ $json.price }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6853e53e-d6cc-408e-80fb-2088ee851c99",
+      "name": "Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "eef39668-09fd-4c35-a6bc-6e6815359b63",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "failed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c787b8bb-058c-4bd5-aab5-e1cab1ffc580",
+      "name": "Generation Failed",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        100
+      ],
+      "parameters": {
+        "errorMessage": "=VELIN task failed (not charged): {{ $json.error }}"
+      }
+    },
+    {
+      "id": "f17a9395-ce23-4dbe-aeb2-a1dbb2cb825a",
+      "name": "Timed Out?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "708d2b28-85fa-4f41-a14a-a2f2db9a7f83",
+              "leftValue": "={{ $runIndex }}",
+              "rightValue": 90,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "30c6ea4f-ab34-4a36-89ed-681cdcf24ecc",
+      "name": "Polling Timeout",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        200
+      ],
+      "parameters": {
+        "errorMessage": "=VELIN task {{ $('Create Task').item.json.id }} did not finish in ~15 minutes"
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Params",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Params": {
+      "main": [
+        [
+          {
+            "node": "Create Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Task": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "Get Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Task": {
+      "main": [
+        [
+          {
+            "node": "Succeeded?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Succeeded?": {
+      "main": [
+        [
+          {
+            "node": "Image URL",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Failed?": {
+      "main": [
+        [
+          {
+            "node": "Generation Failed",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Timed Out?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timed Out?": {
+      "main": [
+        [
+          {
+            "node": "Polling Timeout",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}
