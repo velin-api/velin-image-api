@@ -1,0 +1,8 @@
+{
+  "1": {"class_type": "LoadImage", "inputs": {"image": "ref1.jpg"}},
+  "2": {"class_type": "VelinGenerateImage", "inputs": {
+    "prompt": "same product on a marble kitchen counter, soft morning light",
+    "model": "nano-banana-pro", "aspect_ratio": "1:1", "resolution": "1K",
+    "reference_images": ["1", 0]}},
+  "3": {"class_type": "SaveImage", "inputs": {"filename_prefix": "velin", "images": ["2", 0]}}
+}
