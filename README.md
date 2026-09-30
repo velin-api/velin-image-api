@@ -11,12 +11,16 @@
 
 ```
 .
-├── README.md                     ← you are here
-├── curl.sh                       ← bash + curl + jq
-├── generate.py                   ← Python 3 + requests
-├── generate.mjs                  ← Node 18+ (built-in fetch, no deps)
-├── n8n-velin-image-workflow.json ← importable n8n workflow
-└── SILLYTAVERN.md                ← notes for SillyTavern users
+├── README.md                        ← you are here
+├── curl.sh / generate.py / generate.mjs   ← full-featured CLI examples (retries, refs, backoff)
+├── minimal/                         ← the smallest working client: velin_min.py / .mjs / .sh
+├── examples/batch_product_shots.py  ← batch + reference images + resumable manifest
+├── n8n-velin-image-workflow.json    ← importable n8n workflow (submit + poll + download)
+├── sillytavern/                     ← local adapter + setup guide for SillyTavern
+├── comfyui/ComfyUI-VELIN/           ← ComfyUI custom node (draft)
+├── tests/mock_velin.py              ← offline mock of the API used to test the examples
+├── TESTING.md                       ← exactly what was tested, and against what
+└── SILLYTAVERN.md                   ← why SillyTavern needs an adapter
 ```
 
 ---
@@ -286,7 +290,18 @@ Yes. VELIN is built for developers and resellers. Volume pricing is negotiable o
 - **n8n:** import `n8n-velin-image-workflow.json`. Setup:
   1. In n8n go to **Credentials → New → Header Auth**. Set Name = `Authorization` and Value = `Bearer <your VELIN key>`, and save it as `VELIN API Key`.
   2. Import the workflow. Open **Create Task** and **Get Task** and select that credential. n8n will flag them until you do, because the file contains no real credential.
-  3. Run it with **Manual Trigger** (edit defaults in **Set Params**), or POST JSON `{"prompt": "...", "model": "...", "size": "1:1", "resolution": "1K"}` to the **Webhook** URL. The output item contains `imageUrl`, `taskId` and `priceCny`.
+  3. Run it with **Manual Trigger** (edit defaults in **Set Params**), or POST JSON `{"prompt": "...", "model": "...", "size": "1:1", "resolution": "1K"}` to the **Webhook** URL. The output item contains `imageUrl`, `taskId` and `priceCny`, plus the downloaded file as binary property `image`.
 
   The workflow polls every 10 s and stops with an error if the task fails or runs longer than ~15 min. The webhook responds only when the image is ready (~1–2 min), so make sure your caller's HTTP timeout allows that.
-- **SillyTavern:** see `SILLYTAVERN.md`.
+- **SillyTavern:** run the local adapter in [`sillytavern/`](sillytavern/README.md) and pick "Stable Diffusion Web UI" as the source. Background in `SILLYTAVERN.md`.
+- **ComfyUI:** draft custom node in [`comfyui/`](comfyui/README.md) (submit + poll + reference-image batch in one node). Read its test status first.
+- **Python / Node / curl, minimal:** [`minimal/`](minimal/). About 25 lines each: submit, poll every 4 s, download.
+- **Batch + reference images:** [`examples/batch_product_shots.py`](examples/batch_product_shots.py). Sends the product photo as reference #1 plus optional logo/style refs, spaces submissions under the rate limit, and resumes from `manifest.json` if it crashes.
+
+## Testing status
+
+See [`TESTING.md`](TESTING.md). Short version: every example was run end to end against a local mock that follows the documented contract, the n8n workflow was executed in a real n8n 2.x instance and the ComfyUI node in a real ComfyUI, and the unauthenticated paths (`GET /api/models`, 401 without a key, 404 for an unknown task) were checked against the live API. **A full generation with a real key has not been run for the newest files yet.** If something differs from the docs, please open an issue.
+
+## Questions / feedback
+
+Use [Discussions](https://github.com/velin-api/velin-image-api/discussions) for questions and integration notes, or message [@ayan8866e](https://t.me/ayan8866e) on Telegram.

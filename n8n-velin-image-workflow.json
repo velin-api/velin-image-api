@@ -1,5 +1,5 @@
 {
-  "name": "VELIN - Generate Image (async)",
+  "name": "VELIN - Generate Image (submit + poll)",
   "nodes": [
     {
       "id": "70b5c226-4ac6-4832-8bbf-cd5b90813a87",
@@ -315,6 +315,50 @@
       "parameters": {
         "errorMessage": "=VELIN task {{ $('Create Task').item.json.id }} did not finish in ~15 minutes"
       }
+    },
+    {
+      "id": "997ebf40-7ca7-4829-aa52-c694e4681ca0",
+      "name": "Setup notes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        -320
+      ],
+      "parameters": {
+        "width": 620,
+        "height": 260,
+        "content": "## VELIN async image generation\nSubmit a task, wait, poll until `succeeded`, then download the image.\n\n**Setup:** Credentials -> New -> *Header Auth*: Name `Authorization`, Value `Bearer <your VELIN key>`. Select it on **Create Task**, **Get Task** and **Download Image**. No key is stored in this file.\n\n**Run:** Manual Trigger (edit **Set Params**) or POST JSON `{prompt, model, size, resolution}` to the Webhook. The webhook answers only when the image is ready (~1-2 min).\n\nModels: `GET https://72agi.com/api/models`. Failed tasks are not charged. Docs: https://github.com/velin-api/velin-image-api"
+      }
+    },
+    {
+      "id": "15a0100d-43e9-49d1-88ce-e4468b471682",
+      "name": "Download Image",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        0
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "VELIN API Key"
+        }
+      },
+      "parameters": {
+        "url": "={{ $json.imageUrl }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "image"
+            }
+          }
+        }
+      }
     }
   ],
   "connections": {
@@ -432,6 +476,17 @@
         [
           {
             "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image URL": {
+      "main": [
+        [
+          {
+            "node": "Download Image",
             "type": "main",
             "index": 0
           }
