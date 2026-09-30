@@ -20,7 +20,7 @@ Run a tiny local service (~60 lines of Python or Node) that pretends to be a bac
 3. poll `GET /api/task/{id}` until `succeeded`,
 4. download `https://72agi.com` + `url` and return it as base64 in `{"images": ["..."]}`.
 
-The polling and download logic is exactly what `generate.py` and `generate.mjs` already do. SillyTavern will wait ~1–2 min per image, so make sure no timeout in between is shorter than that. This kit does **not** ship or test such an adapter yet.
+The polling and download logic is exactly what `generate.py` and `generate.mjs` already do. SillyTavern will wait ~1–2 min per image, so make sure no timeout in between is shorter than that. This kit now ships such an adapter: see [`sillytavern/`](sillytavern/README.md). It has been tested against a mock of the VELIN API, not yet with a real SillyTavern session.
 
 **Option B: community extension + proxy.**
 Some community image extensions advertise a configurable "custom API" mode with multipart uploads and async polling. Because these run in the browser, VELIN's missing CORS headers mean you'd still need a small proxy in front of `https://72agi.com`. We haven't tested any of them.
