@@ -135,7 +135,7 @@ Python and Node accept `--ref path.png` (repeatable) for reference images and `-
 
 ## Pricing
 
-Credits are held in CNY. Each task's `price` is reported in CNY. Top-up is in **USDT**; card payments are **coming soon**.
+Credits are held in CNY. Each task's `price` is reported in CNY. Top-up is in **USDT**.
 
 | Model | Price / image | ≈ USD | 1K / 2K / 4K |
 |---|---|---|---|
@@ -275,7 +275,7 @@ No. VELIN has its own small REST API: a multipart `POST` to create a task, then 
 High-quality images take ~45–100 s. Holding HTTP connections open that long is fragile (proxies and serverless timeouts). With polling, a dropped connection never loses your image.
 
 **How do I pay?**
-Top up with **USDT** on the billing page (on-chain, credited automatically). Card payments are **coming soon**.
+Top up with **USDT** on the billing page (on-chain, credited automatically).
 
 **Can I get free credits to test?**
 Free test on request: message **[@ayan8866e](https://t.me/ayan8866e)** on Telegram. For anything else, including higher rate limits, reseller terms and volume pricing up to 100k images/day, message **[@ayan8866e](https://t.me/ayan8866e)** on Telegram.
@@ -287,12 +287,12 @@ Yes. VELIN is built for developers and resellers. Volume pricing is negotiable o
 
 ## No-code / tools
 
-- **n8n:** import `n8n-velin-image-workflow.json`. Setup:
-  1. In n8n go to **Credentials → New → Header Auth**. Set Name = `Authorization` and Value = `Bearer <your VELIN key>`, and save it as `VELIN API Key`.
-  2. Import the workflow. Open **Create Task** and **Get Task** and select that credential. n8n will flag them until you do, because the file contains no real credential.
-  3. Run it with **Manual Trigger** (edit defaults in **Set Params**), or POST JSON `{"prompt": "...", "model": "...", "size": "1:1", "resolution": "1K"}` to the **Webhook** URL. The output item contains `imageUrl`, `taskId` and `priceCny`, plus the downloaded file as binary property `image`.
+- **n8n:** import [`n8n-velin-image-workflow.json`](n8n-velin-image-workflow.json) (Workflows -> Import from File). Flow: Manual Trigger / Webhook -> Set Params -> **Create Task** (multipart POST) -> **Wait 10s** -> **Get Task** -> *Succeeded?* (loops back to Wait while queued/processing, stops with an error on `failed` or after ~15 min) -> **Image URL** -> **Download Image** -> **Result**. Setup:
+  1. In n8n go to **Credentials -> New -> Header Auth**. Set Name = `Authorization` and Value = `Bearer <your VELIN key>`, and save it as `VELIN API Key`.
+  2. Import the workflow. Open **Create Task**, **Get Task** and **Download Image** and select that credential. n8n will flag them until you do, because the file contains no real credential.
+  3. Run it with **Manual Trigger** (edit defaults in **Set Params**), or POST JSON `{"prompt": "...", "model": "...", "size": "1:1", "resolution": "1K"}` to the **Webhook** URL (production URL, workflow active). The output item contains `status`, `taskId`, `imageUrl` and `priceCny`, plus the downloaded file as binary property `image`.
 
-  The workflow polls every 10 s and stops with an error if the task fails or runs longer than ~15 min. The webhook responds only when the image is ready (~1–2 min), so make sure your caller's HTTP timeout allows that.
+  The workflow polls every 10 s and stops with an error if the task fails or runs longer than ~15 min. The webhook responds only when the image is ready (~1-2 min), so make sure your caller's HTTP timeout allows that. **Create Task** deliberately has no retry-on-fail (a retry after a timeout could create a second paid task); **Get Task** retries 3 times. The submit/wait/poll structure works for any async image API: swap the two HTTP Request nodes.
 - **SillyTavern:** run the local adapter in [`sillytavern/`](sillytavern/README.md) and pick "Stable Diffusion Web UI" as the source. Background in `SILLYTAVERN.md`.
 - **ComfyUI:** draft custom node in [`comfyui/`](comfyui/README.md) (submit + poll + reference-image batch in one node). Read its test status first.
 - **Python / Node / curl, minimal:** [`minimal/`](minimal/). About 25 lines each: submit, poll every 4 s, download.

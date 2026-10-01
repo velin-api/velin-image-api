@@ -117,7 +117,8 @@
           ]
         },
         "options": {}
-      }
+      },
+      "notes": "Submit only once. Do not add retry-on-fail here: a retry after a timeout could create a duplicate (paid) task."
     },
     {
       "id": "6c983eb4-34b6-4bca-8aa7-f3022c77ae2f",
@@ -157,7 +158,8 @@
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "options": {}
-      }
+      },
+      "notes": "Polling is safe to retry."
     },
     {
       "id": "2ce34a50-2ff3-4e5f-ab36-1e62701498ae",
@@ -323,12 +325,12 @@
       "typeVersion": 1,
       "position": [
         -40,
-        -320
+        -520
       ],
       "parameters": {
-        "width": 620,
-        "height": 260,
-        "content": "## VELIN async image generation\nSubmit a task, wait, poll until `succeeded`, then download the image.\n\n**Setup:** Credentials -> New -> *Header Auth*: Name `Authorization`, Value `Bearer <your VELIN key>`. Select it on **Create Task**, **Get Task** and **Download Image**. No key is stored in this file.\n\n**Run:** Manual Trigger (edit **Set Params**) or POST JSON `{prompt, model, size, resolution}` to the Webhook. The webhook answers only when the image is ready (~1-2 min).\n\nModels: `GET https://72agi.com/api/models`. Failed tasks are not charged. Docs: https://github.com/velin-api/velin-image-api"
+        "width": 700,
+        "height": 420,
+        "content": "## VELIN async image generation (submit -> wait -> poll -> image URL)\n1. **Credentials -> New -> Header Auth**: Name `Authorization`, Value `Bearer <your VELIN key>`. Select it on **Create Task**, **Get Task** and **Download Image**. No key is stored in this file.\n2. **Run**: Manual Trigger (edit **Set Params**) or POST JSON `{prompt, model, size, resolution}` to the Webhook (production URL).\n3. **Output**: `{status, taskId, imageUrl, priceCny}` plus the image as binary property `image`.\n\nNotes: an image takes ~45-100 s, so the Webhook answers only when it is ready (set your caller's timeout > 2 min). Polls every 10 s, gives up after ~15 min. Failed tasks are not charged. Results are kept 10 h, so save the file (binary `image`) if you need it later. Rate limit: 8 generations/min per account (429 = slow down). Model ids: `GET https://72agi.com/api/models`.\n\nDisclosure: this workflow calls VELIN (72agi.com), run by the author. The submit/wait/poll loop works for any async image API: change the two HTTP Request nodes.\nFree test: message us on Telegram @ayan8866e for a free test. Docs + examples: https://github.com/velin-api/velin-image-api"
       }
     },
     {
@@ -357,6 +359,53 @@
               "outputPropertyName": "image"
             }
           }
+        }
+      },
+      "onError": "continueRegularOutput",
+      "notes": "Optional: saves the file as binary property 'image'. If this step fails, the Result still contains imageUrl.",
+      "notesInFlow": false
+    },
+    {
+      "id": "3f1d6a3e-5b1c-4c43-9a55-6d0c1f7a9e21",
+      "name": "Result",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1760,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "status",
+              "type": "string",
+              "value": "succeeded"
+            },
+            {
+              "id": "a2",
+              "name": "taskId",
+              "type": "string",
+              "value": "={{ $('Image URL').item.json.taskId }}"
+            },
+            {
+              "id": "a3",
+              "name": "imageUrl",
+              "type": "string",
+              "value": "={{ $('Image URL').item.json.imageUrl }}"
+            },
+            {
+              "id": "a4",
+              "name": "priceCny",
+              "type": "number",
+              "value": "={{ $('Image URL').item.json.priceCny }}"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {
+          "includeBinary": true
         }
       }
     }
@@ -487,6 +536,17 @@
         [
           {
             "node": "Download Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image": {
+      "main": [
+        [
+          {
+            "node": "Result",
             "type": "main",
             "index": 0
           }
