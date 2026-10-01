@@ -6,7 +6,7 @@
 - **Failed generations are not charged.** Credits are refunded automatically.
 - **Up to 14 reference images** per request (image-to-image / style / composition)
 - **Capacity up to 100,000 images/day.** Volume pricing is negotiable.
-- **Free test on request: message [@ayan8866e](https://t.me/ayan8866e) on Telegram**
+- **Get started with a small top-up: message [@ayan8866e](https://t.me/ayan8866e) on Telegram**
 - Support / volume deals: Telegram **[@ayan8866e](https://t.me/ayan8866e)**
 
 ```
@@ -277,8 +277,8 @@ High-quality images take ~45–100 s. Holding HTTP connections open that long is
 **How do I pay?**
 Top up with **USDT** on the billing page (on-chain, credited automatically).
 
-**Can I get free credits to test?**
-Free test on request: message **[@ayan8866e](https://t.me/ayan8866e)** on Telegram. For anything else, including higher rate limits, reseller terms and volume pricing up to 100k images/day, message **[@ayan8866e](https://t.me/ayan8866e)** on Telegram.
+**How do I get started?**
+Message me on Telegram **[@ayan8866e](https://t.me/ayan8866e)** to get started with a small top-up. For anything else, including higher rate limits, reseller terms and volume pricing up to 100k images/day, message **[@ayan8866e](https://t.me/ayan8866e)** on Telegram.
 
 **Can I resell or build a product on it?**
 Yes. VELIN is built for developers and resellers. Volume pricing is negotiable on Telegram.
