@@ -25,6 +25,13 @@
 
 ---
 
+## New: music (Suno 5.5 / 5), MCP server, gpt-image-1 migration
+
+- **Music**: `POST /api/music` with Suno 5.5 or Suno 5, ¥0.80 (≈ $0.12) per generation, 2 tracks each. Examples: [`examples/music/suno.py`](examples/music/suno.py), [`examples/music/suno.mjs`](examples/music/suno.mjs). Guide: https://72agi.com/suno-api.html
+- **MCP server** for Claude Desktop / Cursor / Cline: [`mcp/`](mcp/) (zero dependencies, image + music tools).
+- **gpt-image-1 shuts down 2026-10-23** (per OpenAI): [`MIGRATE-FROM-GPT-IMAGE-1.md`](MIGRATE-FROM-GPT-IMAGE-1.md).
+- **AI agents**: skill file https://72agi.com/velin-agent-skill.txt
+
 ## Quickstart
 
 ### 1. Get your API key
@@ -135,7 +142,7 @@ Python and Node accept `--ref path.png` (repeatable) for reference images and `-
 
 ## Pricing
 
-Credits are held in CNY. Each task's `price` is reported in CNY. Top-up is in **USDT**.
+Credits are held in CNY. Each task's `price` is reported in CNY. Top up from $5 by card (Stripe, Apple Pay, Google Pay) or **USDT**.
 
 | Model | Price / image | ≈ USD | 1K / 2K / 4K |
 |---|---|---|---|
@@ -226,7 +233,7 @@ Errors are JSON with an `error` field. **Note:** `error` messages are currently 
 |---|---|---|
 | `202` | Task created | Read `id` and start polling |
 | `401` | Missing/invalid key → `{"error": "..."}` | Check `Authorization: Bearer <key>`; rotate the key if needed |
-| `402` | Not enough credits → body includes `need` and `have` | Top up (USDT) at 72agi.com, then retry |
+| `402` | Not enough credits → body includes `need` and `have` | Top up (card or USDT) at 72agi.com, then retry |
 | `404` | `GET /api/task/{id}` for an unknown id → `{"error": "unknown job"}` | Check the id |
 | `429` | Rate limit exceeded | Back off and retry (our examples wait 10 s, 20 s, …) |
 | other 4xx/5xx | Validation or server error | Log `error`. Retry 5xx with backoff. |
@@ -275,7 +282,7 @@ No. VELIN has its own small REST API: a multipart `POST` to create a task, then 
 High-quality images take ~45–100 s. Holding HTTP connections open that long is fragile (proxies and serverless timeouts). With polling, a dropped connection never loses your image.
 
 **How do I pay?**
-Top up with **USDT** on the billing page (on-chain, credited automatically).
+Top up from $5 on the billing page: card (Stripe, Apple Pay, Google Pay) or **USDT** (on-chain, credited automatically).
 
 **How do I get started?**
 Message me on Telegram **[@ayan8866e](https://t.me/ayan8866e)** to get started with a small top-up. For anything else, including higher rate limits, reseller terms and volume pricing up to 100k images/day, message **[@ayan8866e](https://t.me/ayan8866e)** on Telegram.
